@@ -223,14 +223,14 @@
 				event.preventDefault();
 				if(playStatus === 'playing' || playStatus === 'connecting') {
 					if(delta>0) {
-						smVolume = Math.round(smVolume-5).limiter();
+						volume = Math.round(volume-5).limiter();
 					} else if(delta<0) {
-						smVolume = Math.round(smVolume+5).limiter();
+						volume = Math.round(volume+5).limiter();
 					}
-					$('.volume-click').animateSprite('frame', Math.round(smVolume/10));
-					soundManager.setVolume('record', smVolume);
+					$('.volume-click').animateSprite('frame', Math.round(volume/10));
+					soundManager.setVolume('record', volume);
 					showMessage('volume');
-					localStorage.currVolume = smVolume;
+					localStorage.currVolume = volume;
 					if(soundManager.muted) soundManager.unmute();
 				} else if(!$('.station').hasClass('active')) {
 					showMessage('noselect');
