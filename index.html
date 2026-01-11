@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>Radio Record Player ver. 1.25</title>
+		<link rel="stylesheet" href="style.css" />
+		<script src="js/jquery-3.7.1.min.js"></script>
+		<script src="js/jquery-ui.min.js"></script>
+		<script src="js/jquery.animateSprite.min.js"></script>
+		<script src="js/jquery.mousewheel.js"></script>
+		<script src="js/stations.js"></script>
+		<script src="js/soundmanager2.js"></script>
+	</head>
+	<body>
+		<table class="wrapper">
+			<tr>
+				<td class="content">
+					<div class="radio">
+						<div class="station" id="rr"><div class="station-img"><div class="cover"></div></div><div class="station-name"></div><div class="play disabled"><div class="play-button"></div><div class="play-button-bg"></div></div><div class="station-text"><span class="station-track-artist"></span><span class="station-track-title"></span></div><div class="volume"><div class="volume-click"></div><div class="volume-rollover"></div></div><div class="listen-outside"><a href="medialinks/listen_rr.m3u"></a></div><div class="bitrate"><div id="l32"></div><div id="l128"></div></div><div class="pie-timer"><div class="pie-spinner"></div></div></div>
+						<div class="station" id="teo"><div class="station-img"><div class="cover"></div></div><div class="station-name"></div><div class="play disabled"><div class="play-button"></div><div class="play-button-bg"></div></div><div class="station-text"><span class="station-track-artist"></span><span class="station-track-title"></span></div><div class="volume"><div class="volume-click"></div><div class="volume-rollover"></div></div><div class="listen-outside"><a href="medialinks/listen_teo.m3u"></a></div><div class="bitrate"><div id="l32" disabled></div><div id="l128"></div></div><div class="pie-timer"><div class="pie-spinner"></div></div></div>
+						<div class="station" id="ps"><div class="station-img"><div class="cover"></div></div><div class="station-name"></div><div class="play disabled"><div class="play-button"></div><div class="play-button-bg"></div></div><div class="station-text"><span class="station-track-artist"></span><span class="station-track-title"></span></div><div class="volume"><div class="volume-click"></div><div class="volume-rollover"></div></div><div class="listen-outside"><a href="medialinks/listen_ps.m3u"></a></div><div class="bitrate"><div id="l32" disabled></div><div id="l128"></div></div><div class="pie-timer"><div class="pie-spinner"></div></div></div>
+						<div class="station" id="gop"><div class="station-img"><div class="cover"></div></div><div class="station-name"></div><div class="play disabled"><div class="play-button"></div><div class="play-button-bg"></div></div><div class="station-text"><span class="station-track-artist"></span><span class="station-track-title"></span></div><div class="volume"><div class="volume-click"></div><div class="volume-rollover"></div></div><div class="listen-outside"><a href="medialinks/listen_gop.m3u"></a></div><div class="bitrate"><div id="l32" disabled></div><div id="l128"></div></div><div class="pie-timer"><div class="pie-spinner"></div></div></div>
+						<div class="station" id="tm"><div class="station-img"><div class="cover"></div></div><div class="station-name"></div><div class="play disabled"><div class="play-button"></div><div class="play-button-bg"></div></div><div class="station-text"><span class="station-track-artist"></span><span class="station-track-title"></span></div><div class="volume"><div class="volume-click"></div><div class="volume-rollover"></div></div><div class="listen-outside"><a href="medialinks/listen_tm.m3u"></a></div><div class="bitrate"><div id="l32" disabled></div><div id="l128"></div></div><div class="pie-timer"><div class="pie-spinner"></div></div></div>
+						<div class="station" id="dc"><div class="station-img"><div class="cover"></div></div><div class="station-name"></div><div class="play disabled"><div class="play-button"></div><div class="play-button-bg"></div></div><div class="station-text"><span class="station-track-artist"></span><span class="station-track-title"></span></div><div class="volume"><div class="volume-click"></div><div class="volume-rollover"></div></div><div class="listen-outside"><a href="medialinks/listen_dc.m3u"></a></div><div class="bitrate"><div id="l32" disabled></div><div id="l128"></div></div><div class="pie-timer"><div class="pie-spinner"></div></div></div>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<div class="footer">
+			<div class="watch">
+				<span class="playing-time"></span>
+			</div>
+			<div class="link">
+				<a href="https://www.radiorecord.ru" target="_blank">www.radiorecord.ru</a>
+				<div class="link-bg-blur"></div>
+			</div>
+		</div>
+		<div class="tooltip"></div>
+		<div class="context-menu">
+			<ul>
+				<li>
+					<a href="https://www.radiorecord.ru" target="_blank">Radio Record</a>
+				</li>
+				<li>
+					<a href="https://piratestation.info" target="_blank">Pirate Station</a>
+				</li>
+				<li>
+					<a href="http://trancemission.ru" target="_blank">Trancemission</a>
+				</li>
+				<li>
+					<a href="http://teodorfest.ru" target="_blank">Teodorfest</a>
+				</li>
+				<li>
+					<a href="http://www.radiorecord.ru/gopfm" target="_blank">ГОП FM</a>
+				</li>
+				<li class="menu-separator"></li>
+				<li>
+					<a href="javascript:String(window.location.href)" name="Radio Record Player ver. 1.205">Открыть в другом окне</a>
+				</li>
+				<li>
+					<a href="https://rimfoer.github.io/Radio-Record-Player-ver.-1.104s/" name="Radio Record Player ver. 1.104s">Перейти на старую версию</a>
+				</li>
+			</ul>
+		</div>
+		<script>
+			let aInterval, advInterval, mmBitrate, ctInterval, currParser, currStation, mInterval, radio, url;
+			let bitrate = localStorage.currBitrate || 'l128', playStatus = 'reading', volume = localStorage.currVolume || 70;
+			let currSpeed = $('.bitrate').find(`#${bitrate}`).index(), currTime = 0, getCurVolPos = 0, int_phs = 0, OtherParser = 0, smErrorCounter = 0, startCount = 5;
+
+			$(function() {
+				update_title_Adv();
+				document.oncontextmenu = function() {return false;};
+				localStorage.playSource = '';
+			});
+
+			soundManager.setup({
+				preferFlash: false,
+				onready: function() {
+					checkLSItems();
+					playStatus = 'stopped';
+					$('.station').children('.play').removeClass('disabled');
+					$('.bitrate').children(`#${bitrate}`).addClass('active');
+					$('.volume-click, .volume-rollover').animateSprite(animParamsVolume);
+					$('.volume-click').animateSprite('play', `${Math.round(volume/10)}`);
+					$('.bitrate').children('#l32,#l128').animateSprite(animParamsBitrate);
+					$('.bitrate').children(`#${bitrate}`).animateSprite('play', 'animate');
+					$('.bitrate').children(bitrate === 'l128' ? '#l32' : '#l128').animateSprite('play', 'remove');
+				},
+				useHighPerformance: false
+			});
+
+			soundManager.onerror = function() {
+				smErrorCounter++;
+				if(smErrorCounter < 10) setTimeout(() => soundManager.reboot(), 3000);
+			};
+
+			$(document).on('click', '.play-button', function(e) {
+				e.preventDefault();
+				if($(this).hasClass('playing') && playStatus === 'playing') {
+					$(this).stop();
+				} else if($(this).closest('.station').hasClass('active') && playStatus === 'stopped') {
+					$(this).startPlay(url);
+				} else if($(this).hasClass('playing') && playStatus === 'ended') {
+					$(this).stop();
+					setTimeout($(this).startPlay(url), 1000);
+				} else {
+					if(soundManager.soundIDs.length > 0) $(this).stop();
+					$('.station').children('.volume, .bitrate, .pie-timer').removeClass('active');
+					$('.station').removeClass('active');
+					/****************************************************************************/
+					$(this).closest('.station').addClass('active');
+					radio = $('.station.active').attr('id'),
+					currParser = $('.station.active').index().curStation(),
+					currStation = $('.station.active').index();
+					setPlayURL(radio);
+					$(`#${radio}`).startPlay(url);
+					$(`#${radio}`).children('.pie-timer').addClass('active');
+					update_title_Main(currParser);
+				}
+				if(startCount === 5) {
+					startCount = 4;
+					parseCount(OtherParser);
+				}
+			});
+
+			$(document).on('mousemove mousedown', '.volume.active', function(e) {
+				let xpos = e.offsetX === undefined ? e.pageX-$(this).offset().left : e.offsetX;
+				let	VolXMouse = Number(Math.round(xpos/25*10)*10).limiter();
+				if(e.buttons === 1) {
+					$('.volume-click').animateSprite('frame', Math.round(VolXMouse/10));
+					volume = VolXMouse;
+					soundManager.setVolume('record', VolXMouse);
+					localStorage.currVolume = VolXMouse;
+					if(soundManager.muted) soundManager.unmute();
+				}
+				$(this).children('.volume-rollover').animateSprite(getCurVolPos === 0 ? 'play' : 'frame', `${Math.round(VolXMouse/10)}`);
+				setTimeout(() => getCurVolPos = Math.round(VolXMouse/10), 300);
+				showMessage('volume', VolXMouse);
+			}).on('mouseleave', '.volume.active', function() {
+				$(this).children('.volume-rollover').animateSprite('play', 'r'+getCurVolPos);
+				setTimeout(() => getCurVolPos = 0, 300);
+				showMessage();
+			});
+
+			$(document).on('click', '.listen-outside a', function() {
+				if($(this).closest('.station').hasClass('active') && playStatus === 'playing') $(`#${radio}`).stop();
+				return this.href;
+			});
+
+			$(document).on('click', '.bitrate.active div', function() {
+				$('.bitrate').find('#'+bitrate).animateSprite('play', 'remove').removeClass('active');
+				if(this.id !== bitrate) {
+					bitrate = this.id,
+					currSpeed = $('.bitrate').children('#'+this.id).index(),
+					url = StreamDomain + streamNames[currStation] + streamSpeed[currSpeed];
+				} else if(radio !== 'rr') {
+					bitrate = 'l128',
+					currSpeed = 1,
+					url = StreamDomain + streamNames[currStation] + streamSpeed[1];
+				}
+				removeBitrateSelected(bitrate);
+				$('#'+radio).startPlay(url);
+				$('.bitrate').find('#'+bitrate).addClass('active').animateSprite('play', 'animate');
+				$('.bitrate').children('#'+mmBitrate).animateSprite('play', 'remove');
+				localStorage.currBitrate = this.id;
+			}).on('mouseenter', '.bitrate.active div', function() {
+				if(this.id !== bitrate) {
+					mmBitrate = this.id;
+					$('.bitrate').children('#'+mmBitrate).animateSprite('play', 'animate');
+				}
+			}).on('mouseleave', '.bitrate.active', function() {
+				$('.bitrate').children('#'+mmBitrate).animateSprite('play', 'remove');
+			});
+
+			$('.link a').on('click', function(e) {
+				e.preventDefault();
+				window.open(this.href, '_blank').focus();
+			});
+
+			$(document).on('dblclick', '.station-text', function() {
+				if(showTitles.includes($(this).children('span:eq(1)').attr('title'))) {
+					showMessage('nocopy');
+				} else if($(this).children('span:eq(0)').attr('title') === '') {
+					showMessage('nocopy');
+				} else {
+					navigator.clipboard.writeText($(this).children('span:eq(0)').attr('title') + ' - ' + $(this).children('span:eq(1)').attr('title'));
+					showMessage('copy');
+				}
+			}).on('mouseenter', '.station-text span', function() {
+				if(localStorage.copyTextTip === 'false') {
+					$(this).css('pointer-events', 'none');
+					showMessage('copytext');
+					setTimeout(() => $(this).css('pointer-events', ''), 6000);
+					localStorage.copyTextTip = 'true';
+				}
+			});
+
+			$(document).on('click', function() {
+				$('.context-menu').removeClass('active');
+			}).on('contextmenu', function(e) {
+				e.preventDefault();
+				$('.context-menu').removeClass('active');
+				$('.context-menu').css({left: `${e.pageX}px`, top: `${e.pageY}px`});
+				$('.context-menu').addClass('active');
+			}).on('click', '.context-menu ul li a', function(e) {
+				e.preventDefault();
+				$('.context-menu').removeClass('active');
+				if(!$(this).attr('target')) {
+					openURL(this.name, this.href);
+				} else {
+					window.open(this.href, '_blank').focus();
+				}
+			}).on('mouseleave', function() {
+				$('.context-menu').removeClass('active');
+			});
+
+			$('body').on('mousemove', function(e) {
+				$('.tooltip').css({left: `${e.pageX+18}px`, top: `${e.pageY-2}px`});
+			});
+
+			$(document).mousewheel(function(event, delta) {
+				event.preventDefault();
+				if(playStatus === 'playing' || playStatus === 'connecting') {
+					if(delta>0) {
+						smVolume = Math.round(smVolume-5).limiter();
+					} else if(delta<0) {
+						smVolume = Math.round(smVolume+5).limiter();
+					}
+					$('.volume-click').animateSprite('frame', Math.round(smVolume/10));
+					soundManager.setVolume('record', smVolume);
+					showMessage('volume');
+					localStorage.currVolume = smVolume;
+					if(soundManager.muted) soundManager.unmute();
+				} else if(!$('.station').hasClass('active')) {
+					showMessage('noselect');
+				} else {
+					showMessage('notplaying');
+				}
+			});
+
+			$('body').on('keydown', function(e) {
+				switch(e.which) {
+					case 27: // esc
+						$('.context-menu').removeClass('active');
+						break;
+					case 32: { // пробел
+						radio !== undefined ? $('.station.active').play() : showMessage('noselect');
+						break;
+					}
+					case (e.which>=49 && e.which<=54 ? e.which : false): { // 1, 2, 3, 4, 5, 6 (не numpad!)
+						$(`${e.which.fastPlay()}`).play();
+						break;
+					}
+					case (e.which>=97 && e.which<=102 ? e.which : false): { // 1, 2, 3, 4, 5, 6 (numpad)
+						$(`${e.which.fastPlay()}`).play();
+						break;
+					}
+					case 77: { // m
+						if(soundManager.muted) {
+							soundManager.unmute();
+							$('.volume-click').animateSprite('frame', volume/10);
+							showMessage('unmute');
+						} else {
+							soundManager.mute();
+							$('.volume-click').animateSprite('frame', 0);
+							showMessage('mute');
+						}
+						break;
+					}
+					case 82: { // r
+						if(playStatus === 'playing' || playStatus === 'connecting') {
+							$('.station.active').restart();
+						} else if(!$('.station').hasClass('active')) {
+							showMessage('noselect');
+						} else {
+							showMessage('notplaying');
+						}
+						break;
+					}
+				}
+			});
+		</script>
+	</body>
+</html>
