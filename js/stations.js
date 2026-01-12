@@ -307,9 +307,9 @@ function setLSItem(id) {
 function openURL(windowName, url) {
 	if(!window.popups) window.popups = [];
 	let wnd = window.popups[windowName];
-	let resolution = url !== window.location.href ? 'width=422,height=554' : 'width=844,height=422';
+	let params = url !== window.location.href ? (window.devicePixelRatio > 1 ? 'width=417,height=544' : 'width=422,height=554') : (window.devicePixelRatio > 1 ? 'width=838,height=418' : 'width=844,height=422');
 	if(wnd && !wnd.closed) wnd.focus();
-	wnd = window.open(url, windowName, `top=100,left=200,${resolution},location=no,menubar=no,resizable=no,scrollbars=no,status=no,toolbar=no`);
+	wnd = window.open(url, windowName, `top=100,left=200,${params},location=no,menubar=no,resizable=no,scrollbars=no,status=no,toolbar=no`);
 	wnd.focus();
 	window.popups[windowName] = wnd;
 }
@@ -373,4 +373,5 @@ function removeBitrateSelected(str) {
 			localStorage.playSource = '';
 		}
 	});
+
 })(jQuery);
