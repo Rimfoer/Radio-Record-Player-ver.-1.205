@@ -386,7 +386,7 @@ function currColorScheme() {
 				useHtml5Audio: true,
 				volume: volume,
 				whileplaying: function() {
-					if(sessionStorage.playSource !== 'current') $('#'+radio).stop();
+					if(localStorage.playSource !== 'current') $('#'+radio).stop();
 				}
 			});
 			if(soundManager.muted) {
@@ -396,7 +396,7 @@ function currColorScheme() {
 			setWatch(0);
 			$('.watch').addClass('active');
 			$('.station.active').children('.volume, .bitrate').addClass('active');
-			sessionStorage.playSource = 'current';
+			localStorage.playSource = 'current';
 		},
 		stop: function() {
 			soundManager.destroySound('record');
@@ -408,7 +408,8 @@ function currColorScheme() {
 			currTime = 0,
 			playStatus = 'stopped';
 			setWatch(0);
-			sessionStorage.playSource = '';
+			localStorage.playSource = '';
 		}
 	});
 })(jQuery);
+
