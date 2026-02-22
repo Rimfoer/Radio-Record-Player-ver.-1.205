@@ -106,7 +106,7 @@
 				preferFlash: false, // никакого флеша
 				onready: function() {
 					checkLSItems(); // проверяем наличие "нужных" строк в сторэдже
-					sessionStorage.playSource = ''; // при загрузке страницы плеер явно ничего не воспроизводит
+					localStorage.playSource = ''; // при загрузке страницы плеер явно ничего не воспроизводит
 					playStatus = 'stopped'; // при успешной инициализации плеера меняем значение на "остановлен"
 					$('.station').children('.play').removeClass('disabled');
 					$('.volume-click, .volume-rollover').animateSprite(animParamsVolume);
