@@ -250,10 +250,10 @@ Number.prototype.fastPlay = function(num) {
 
 String.prototype.setArtistName = function() {
 	let artist = String(this);
-	if(artist === "" || ['Record','Radio Record',''].includes(artist)) {
+	if(artist === "" || ['Record','Radio Record','Радио Рекорд','Рекорд'].includes(artist)) {
 		return 'В эфире:';
 	} else if(showArtists.includes(artist)) {
-		return `В эфире: ${artist}`;
+		return 'В эфире: ' + artist;
 	} else {
 		return artist.stripWhitespace();
 	}
@@ -266,7 +266,7 @@ String.prototype.setSongName = function(numSt) {
 	} else if(showTitles.includes(title) || showArtists.includes(title)) {
 		return title;
 	} else if(specialChars.test(title)) {
-		if([0,1,2].includes(numSt)) return title.stripWhitespace();
+		return ([0,1,2].includes(numSt) ? '' : '— ') + title.stripWhitespace();
 	} else {
 		return '— ' + title.stripWhitespace();
 	}
