@@ -1,72 +1,48 @@
 const animParamsVolume = {fps:60,animations:{0:[0],1:[0,1],r1:[1,0],2:[0,1,2],r2:[2,1,0],3:[0,1,2,3],r3:[3,2,1,0],4:[0,1,2,3,4],r4:[4,3,2,1,0],5:[0,1,2,3,4,5],r5:[5,4,3,2,1,0],6:[0,1,2,3,4,5,6],r6:[6,5,4,3,2,1,0],7:[0,1,2,3,4,5,6,7],r7:[7,6,5,4,3,2,1,0],8:[0,1,2,3,4,5,6,7,8],r8:[8,7,6,5,4,3,2,1,0],9:[0,1,2,3,4,5,6,7,8,9],r9:[9,8,7,6,5,4,3,2,1,0],10:[0,1,2,3,4,5,6,7,8,9,10],r10:[10,9,8,7,6,5,4,3,2,1,0]},loop: false,autoPlay: false};
 const animParamsBitrate = {fps:60,animations:{animate:[0,1,2,3,4],remove:[4,3,2,1,0]},loop: false,autoPlay: false};
 const textColor = {artist:{off:"rgb(255,255,255,0)",on:"rgb(255,255,255,.7)"},title:{off:"rgb(163,163,163,0)",on:"rgb(163,163,163,.8)"}};
-const parser = ['record','ps','tm','teo','gop','dc'];
+const parser = [71,43,40,57,63,53];
 const stationId = ['rr','ps','tm','teo','gop','dc'];
 const streamNames = ['rr_main','teo','ps','gop','tm','dc'];
 const streamSpeed = ['32.aacp','96.aacp'];
 const StreamDomain = 'http://radiorecord.hostingradio.ru/';
-const showArtists = ['Record Club', 'Record Deep', 'Record Megamix'];
-const showTitles = ['Armin Van Buuren', 'Feel', 'Gvozd', 'Guest Mix CYRIL', 'Kefir', 'Lady Waks', 'Lena Popova', 'Martin Garrix', 'Nejtrino & Baur', 'Oliver Heldens', 'Record Classix', 'Record News', 'Record Party', 'Record Superchart', 'Record Club Chart', 'Record Dance Radio', 'Selection', 'Zeskullz', 'by DJ Peretse', 'Вейкаперы', 'Кремов и Хрусталёв','Цветкоff'];
-const specialChars = /[#$%^*\=\{};:"\\|<>\/]/;
+const arrArtists = ['Record', 'Radio Record', 'Record Club', 'Record Deep', 'Record Megamix', 'Радио Рекорд', 'Рекорд'];
+const arrTitles = ['Armin Van Buuren', 'Feel', 'Gvozd', 'Guest Mix CYRIL', 'Kefir', 'Lady Waks', 'Lena Popova', 'Martin Garrix', 'Nejtrino & Baur', 'Oliver Heldens', 'Record Classix', 'Record Party', 'Record Superchart', 'Record Club Chart', 'Selection', 'The Voice Of My Soul', 'Trance Music Club', 'Zeskullz', 'by DJ Peretse', 'Цветкоff'];
+const arrRadioShows = ['InvestFuture', 'Record Dance Radio', 'Record News', 'Вейкаперы', 'Кремов и Хрусталёв', 'Русский Час'];
+const specialChars = /[#$%^*\=\{};:"\\|<>]/;
+const arrMessages = {'closeTab': 'Теперь вкладку можно закрыть.', 'copy': 'Текст скопирован в буфер обмена', 'copytext': 'Нажми два раза, чтобы скопировать в буфер обмена', 'mute': 'Звук приглушен', 'nocopy': 'Текст не был скопирован', 'noselect': 'Станция не выбрана', 'noconnect': 'Ошибка подключения к аудиопотоку.', 'notloaded': 'Ошибка загрузки данных о текущем треке', 'notplaying': 'В данный момент ничего не играет.', 'played': 'Воспроизведение остановлено', 'restart': 'Воспроизведение перезапущено', 'unmute': 'Звук возобновлен', 'volume': 'Громкость: '};
+const stationNames = ['Radio Record',  'Teodor', 'Pirate Station', 'Гоп FM', 'Trancemission', 'Record Dancecore'];
 
 function currPlayerStatus(stat) {
 	let playButton = $('.station.active').find('.play-button');
+	let playButtonBg = $('.station.active').find('.play-button-bg');
 	switch(stat !== undefined ? stat : playStatus) {
 		case 'waiting':
 		case 'stalled':
 		case 'loading':
 		case 'connecting': {
-			if(!playButton.hasClass('connecting')) {
-				playButton.addClass('connecting');
-			} else if(playButton.hasClass('playing')) {
-				playButton.removeClass('playing').addClass('connecting');
-			}
+			playButton.removeClass('playing').addClass('connecting');
+			playButtonBg.animate({opacity: 0.7}, 300);
 			break;
 		}
 		case 'playing': {
-			if(playButton.hasClass('connecting')) {
-				playButton.removeClass('connecting').addClass('playing');
-			} else if(!playButton.hasClass('playing')) {
-				playButton.addClass('playing');
-			}
+			playButton.removeClass('connecting').addClass('playing');
+			playButtonBg.animate({opacity: 0.7}, 300);
 			break;
 		}
 		default: {
 			playButton.removeClass(['connecting','playing']);
+			playButtonBg.animate({opacity: 0}, 300);
 		}
 	}
 }
 
 function showMessage(txt, val) {
-	let msg;
 	if(txt !== undefined && val === undefined) {
-		switch(txt) {
-			case 'closeTab': msg = 'Теперь вкладку можно закрыть.'; break;
-			case 'copy': msg = 'Текст скопирован в буфер обмена'; break;
-			case 'copytext': msg = 'Нажми два раза, чтобы скопировать в буфер обмена'; break;
-			case 'mute': msg = 'Звук приглушен'; break;
-			case 'nocopy': msg = 'Текст не был скопирован'; break;
-			case 'noselect': msg = 'Станция не выбрана'; break;
-			case 'noconnect': msg = 'Ошибка подключения к аудиопотоку.'; break;
-			case 'notloaded': msg = 'Ошибка загрузки данных о текущем треке'; break;
-			case 'notplaying': msg = 'В данный момент ничего не играет.'; break;
-			case 'nowplaying': msg = 'Воспроизведение остановлено'; break;
-			case 'restart': msg = 'Воспроизведение перезапущено'; break;
-			case 'unmute': msg = 'Звук возобновлен'; break;
-			case 'volume': msg = `Громкость ${volume}%`; break;
-			default: msg = 'Не понимаю, что ты от меня хочешь';
-		}
-		$('.tooltip').html(msg).addClass('active');
-		setTimeout(() => $('.tooltip').removeClass('active'), 5000+String(msg).length*50);
+		$('.tooltip').html(arrMessages[txt]).addClass('active');
+		setTimeout(() => $('.tooltip').removeClass('active'), 5000 + String(arrMessages[txt]).length * 50);
 	} else if(txt !== undefined && val !== undefined) {
-		switch(txt) {
-			case 'volume': {
-				msg = `Громкость ${val}%`;
-				break;
-			}
-		}
-		$('.tooltip').hasClass('active') ? $('.tooltip').html(msg) : $('.tooltip').html(msg).addClass('active');
+		$('.tooltip').html(arrMessages[txt] + val + (txt === 'volume' ? '%' : '')).addClass('active');
 	} else {
 		$('.tooltip').removeClass('active');
 	}
@@ -86,8 +62,8 @@ function setWatch(ts) {
 			$('.watch').children('.playing-time').html(`
 				<span style="color: #666666">${hours}</span>
 				<span style="color: #A6A6A6; margin-left: -4px">:${minutes}</span>
-				<span style="color: rgb(255,255,255,.7); margin-left: -4px">:${seconds}</span>
-				<span style="color: rgb(87,87,87,.6)">&nbsp${milliseconds}</span>
+				<span style="color: rgb(255,255,255,.6); margin-left: -4px">:${seconds}</span>
+				<span style="color: rgb(87,87,87,.5)">&nbsp${milliseconds}</span>
 			`);
 			break;
 		}
@@ -95,7 +71,7 @@ function setWatch(ts) {
 			$('.watch').children('.playing-time').html(`
 				<span style="color: #666666">${hours}</span>
 				<span style="color: #A6A6A6; margin-left: -4px">:${minutes}</span>
-				<span style="color: rgb(255,255,255,.7); margin-left: -4px">:${seconds}</span>
+				<span style="color: rgb(255,255,255,.6); margin-left: -4px">:${seconds}</span>
 			`);
 		}
 	}
@@ -104,43 +80,43 @@ function setWatch(ts) {
 function setPlayURL(curSt) {
 	if(curSt !== 'rr' && currSpeed === 0) {
 		$('.bitrate').children('div').removeClass('active');
-		bitrate = 'l128',
-		currSp = 1,
-		url = StreamDomain + streamNames[currStation] + streamSpeed[1];
+		bitrate = '128',
+		currSpeed = 1,
 		invertBitrateValue(bitrate);
-		$('.bitrate').children('#'+rmBitrate).animateSprite('play', 'remove').removeClass('active');
-		$('.bitrate').children('#'+bitrate).addClass('active').animateSprite('play', 'animate');
+		$('#'+rmBitrate).animateSprite('play', 'remove');
+		$('#'+bitrate).addClass('active').animateSprite('play', 'animate');
 		localStorage.currBitrate = bitrate;
-	} else {
-		url = StreamDomain + streamNames[currStation] + streamSpeed[currSpeed];
 	}
+	url = StreamDomain + streamNames[currStation] + streamSpeed[currSpeed];
 }
 
 function parseTitle(...args) {
 	$.each(args[0], function(key, val) {
 		switch(key) {
 			case 'artist': {
-				if(val !== args[1].children('span:eq(0)').attr('title')) {
-					args[1].children('span:eq(0)').animate({color: textColor.artist.off}, 400, function() {
-						$(this).html(val.setArtistName());
-						$(this).attr('title', val);
-						$(this).animate({color: textColor.artist.on}, 400);
+				if(val !== stationText[args[2]][0]) {
+					args[1].children('span:eq(0)').animate({color: textColor.artist.off}, 500, function() {
+						$(this).html(val.setArtistName(args[0].song));
+						$(this).attr('title', val.checkTextLength());
+						$(this).animate({color: textColor.artist.on}, 500);
 					});
+					stationText[args[2]][0] = val;
 				}
 				break;
 			}
-			case 'trackname': {
-				if(val !== args[1].children('span:eq(1)').attr('title')) {
-					args[1].children('span:eq(1)').animate({color: textColor.title.off}, 400, function() {
+			case 'song': {
+				if(val !== stationText[args[2]][1]) {
+					args[1].children('span:eq(1)').animate({color: textColor.title.off}, 500, function() {
 						$(this).html(val.setSongName(args[2]));
-						$(this).attr('title', val);
-						$(this).animate({color: textColor.title.on}, 400, function() {
+						$(this).attr('title', val.checkTextLength());
+						$(this).animate({color: textColor.title.on}, 500, function() {
 							if(args[3] === false) {
 								$('.station.active').find('.pie-spinner').addClass('running');
 								mInterval = setTimeout(update_title_Main, 5000);
 							}
 						});	
 					});
+					stationText[args[2]][1] = val;
 				} else {
 					if(args[3] === false) {
 						$('.station.active').find('.pie-spinner').addClass('running');
@@ -151,83 +127,61 @@ function parseTitle(...args) {
 			}
 		}
 	});
-	if(args[3]) parseCount(OtherParser);
+	if(args[3]) otherParser.parseCount();
 }
 
 function update_title_Main(startWith) {
 	if(mInterval !== undefined) clearTimeout(mInterval);
-	if(startWith>=0) currParser = startWith;
-	$('.station').find('.pie-spinner').removeClass('running');
-	$.getJSON(`https://tags.radiorecord.fm/now.php?chan=${parser[currParser]}`).done(function(data) {
-		parseTitle(
-			data,
-			$(`#${stationId[currParser]}`).children('.station-text'),
-			currParser,
-			false
-		);
+	let el = $(`#${stationId[currParser]}`).children('.station-text');
+	$('.station.active').find('.pie-spinner').removeClass('running');
+	$.getJSON('https://vk.radiorecord.ru/api/stations/now/').done(function(data) {
+		parseTitle(data.result[parser[!startWith ? currParser : startWith]].track, el, currParser, false);
 	}).fail(function() {
 		showMessage('notloaded');
 		$('.station.active').find('.pie-spinner').addClass('running');
 		mInterval = setTimeout(update_title_Main, 5000);
 	});
-	return false;
 }
 
 function update_title_Adv() {
 	int_phs = 0;
-	advInterval = setInterval(() => update_title_Adv_shot(), 800);
+	advInterval = setInterval(update_title_Adv_shot, 800);
 }
 
 function update_title_Adv_shot(startWith) {
-	if(startWith>=0) OtherParser = startWith;
+	let elm = $(`#${stationId[otherParser]}`).children('.station-text');
 	if(int_phs <= startCount) {
-		$.getJSON(`https://tags.radiorecord.fm/now.php?chan=${parser[OtherParser]}`).done(function(data) {
-			parseTitle(
-				data,
-				$(`#${stationId[OtherParser]}`).children('.station-text'),
-				OtherParser,
-				true
-			);
+		$.getJSON('https://vk.radiorecord.ru/api/stations/now/').done(function(data) {
+			parseTitle(data.result[parser[!startWith ? otherParser : startWith]].track, elm, otherParser, true);
 		}).fail(function() {
 			showMessage('notloaded');
-			parseCount(OtherParser);
+			otherParser.parseCount();
 			if(int_phs >= startCount) {
 				clearInterval(advInterval);
-				aInterval = setTimeout(update_title_Adv, 30000);
+				aInterval = setTimeout(update_title_Adv, 33333);
 			}
 		});
 		int_phs++;
 	} else {
 		clearInterval(advInterval);
-		aInterval = setTimeout(update_title_Adv, 30000);
+		aInterval = setTimeout(update_title_Adv, 33333);
 	}
 }
 
-Number.prototype.limiter = function(num) {
+Number.prototype.VolLimiter = function(num) {
 	return (Number(this) > 100 ? 100 : Number(this) < 0 ? 0 : Number(this));
 }
 
-function parseCount(num) {
+Number.prototype.parseCount = function() {
+	let num = Number(this)
 	if(currParser !== undefined) {
-		if(num >= 5) {
-			if(currParser <= 0) {
-				OtherParser = 1;
-			} else if(currParser > 0 && currParser < 5 || currParser === 5) {
-				OtherParser = 0;
-			}
-		} else {
-			if(num === currParser - 1) {
-				OtherParser = currParser >= 5 ? 0 : num + 2;
-			} else {
-				OtherParser = num + 1;
-			}
-		}
+		otherParser = num >= 5 ? (currParser <= 0 ? 1 : 0) : (num === currParser - 1 ? (currParser >= 5 ? 0 : num + 2) : num + 1);
 	} else {
-		OtherParser = num >= 5 ? 0 : num + 1;
+		otherParser = num >= 5 ? 0 : num + 1;
 	}
 }
 
-Number.prototype.setCurrParser = function(num) {
+Number.prototype.setParser = function(num) {
 	switch(Number(this)) {
 		case 1: return 3; break; // teo
 		case 2: return 1; break; // ps
@@ -237,23 +191,10 @@ Number.prototype.setCurrParser = function(num) {
 	}
 }
 
-Number.prototype.fastPlay = function(num) {
-	switch(Number(this)) {
-		case 49: case 97: return '#rr'; break;
-		case 50: case 98: return '#ps'; break;
-		case 51: case 99: return '#tm'; break;
-		case 52: case 100: return '#teo'; break;
-		case 53: case 101: return '#gop'; break;
-		case 54: case 102: return '#dc'; break;
-	}
-}
-
-String.prototype.setArtistName = function() {
+String.prototype.setArtistName = function(songName) {
 	let artist = String(this);
-	if(artist === "" || ['Record','Radio Record','Радио Рекорд','Рекорд'].includes(artist)) {
-		return 'В эфире:';
-	} else if(showArtists.includes(artist)) {
-		return 'В эфире: ' + artist;
+	if(artist === "" || arrArtists.includes(artist)) {
+		return (arrRadioShows.includes(songName) ? 'В эфире: ' + songName : 'В эфире:');
 	} else {
 		return artist.stripWhitespace();
 	}
@@ -261,14 +202,12 @@ String.prototype.setArtistName = function() {
 
 String.prototype.setSongName = function(numSt) {
 	let title = String(this);
-	if(title === "") {
+	if(title === "" || arrRadioShows.includes(title)) {
 		return '';
-	} else if(showTitles.includes(title) || showArtists.includes(title)) {
-		return title;
 	} else if(specialChars.test(title)) {
 		return ([0,1,2].includes(numSt) ? '' : '— ') + title.stripWhitespace();
 	} else {
-		return '— ' + title.stripWhitespace();
+		return (arrTitles.includes(title) ? '' : '— ') + title.stripWhitespace();
 	}
 };
 
@@ -283,38 +222,30 @@ String.prototype.stripWhitespace = function() {
 	}
 }
 
-function audioStreamLink(type) {
-	switch(type) {
-		case 'applemusic': {
-			return 'https://music.apple.com/us/search?term=';
-			break;
-		}
-		case 'deezer': {
-			return 'https://www.deezer.com/search/';
-			break;
-		}
-		case 'spotify': {
-			return 'https://open.spotify.com/search/';
-			break;
-		}
-		case 'vk': {
-			return 'https://vk.com/audios0?q=';
-			break;
-		}
-		case 'yandexmusic': {
-			return 'https://music.yandex.ru/search?text=';
-			break;
-		}
-		case 'youtubemusic': {
-			return 'https://music.youtube.com/search?q=';
-			break;
-		}
+String.prototype.checkTextLength = function() {
+	let txt = String(this);
+	if(txt.toUpperCase() === txt) {
+		return (txt.length > 25 ? txt : '');
+	} else if(txt.toLowerCase() === txt) {
+		return (txt.length > 31 ? txt : '');
+	} else {
+		return (txt.length > 28 ? txt : '');
 	}
 }
 
-function encodeURI(obj) {
-	let new_artist = String(obj[0]).replace(/\//g,'%2F');
-	return `${new_artist.replace(/\s/g,'%20')}%20-%20${String(obj[1]).replace(/\s/g,'%20')}`;
+function audioStreamLink(type) {
+	switch(type) {
+		case 'applemusic': return 'https://music.apple.com/us/search?term='; break;
+		case 'deezer': return 'https://www.deezer.com/search/'; break;
+		case 'spotify': return 'https://open.spotify.com/search/'; break;
+		case 'vk': return 'https://vk.com/audios0?q='; break;
+		case 'yandexmusic': return 'https://music.yandex.ru/search?text='; break;
+		case 'youtubemusic': return 'https://music.youtube.com/search?q='; break;
+	}
+}
+
+function customEncodeURI(obj, pos) {
+	return encodeURI(`${String(obj[pos][0])} - ${String(obj[pos][1]).replace(' (Record Mix)', '')}`);
 }
 
 function checkLSItems() {
@@ -327,8 +258,8 @@ function checkLSItems() {
 function setLSItem(id) {
 	switch(id) {
 		case 'copyTextTip': localStorage[id] = false; break;
-		case 'currBitrate': localStorage[id] = 'l128'; break;
-		case 'currVolume': localStorage[id] = '70'; break;
+		case 'currBitrate': localStorage[id] = '128'; break;
+		case 'currVolume': localStorage[id] = '75'; break;
 	}
 }
 
@@ -347,8 +278,8 @@ function setWindowParams(link) {
 
 function invertBitrateValue(str) {
 	switch(str) {
-		case 'l32': return 'l128'; break;
-		case 'l128': return 'l32'; break;
+		case '32': return '128'; break;
+		case '128': return '32'; break;
 		default: return false;
 	}
 }
@@ -365,28 +296,28 @@ function currColorScheme() {
 			$(this).find('.play-button').trigger('click');
 		},
 		restart: function() {
-			soundManager.destroySound('record');
+			soundManager.destroySound(stationNames[currStation]);
 			playStatus = 'connecting';
 			currPlayerStatus('connecting');
-			setTimeout($(`#${radio}`).startPlay(url), 1500);
+			setTimeout($('.station.active').startPlay(url), 1500);
 			showMessage('restart');
 		},
 		startPlay: function(link) {
-			if(soundManager.soundIDs.length>0) $(`#${radio}`).stop();
+			if(soundManager.soundIDs.length > 0) $('.station').stop();
 			soundObject = soundManager.createSound({
 				autoLoad: false,
 				autoPlay: true,
 				html5PollingInterval: true,
-				id: 'record',
+				id: stationNames[currStation],
 				onfinish: function() {
-					$(`#${radio}`).restart();
+					$('.station.active').restart();
 				},
 				stream: true,
-				url: link,
+				url: link || url,
 				useHtml5Audio: true,
 				volume: volume,
 				whileplaying: function() {
-					if(localStorage.playSource !== 'current') $('#'+radio).stop();
+					if(localStorage.playSource !== 'current') $('.station.active').stop();
 				}
 			});
 			if(soundManager.muted) {
@@ -399,7 +330,7 @@ function currColorScheme() {
 			localStorage.playSource = 'current';
 		},
 		stop: function() {
-			soundManager.destroySound('record');
+			soundManager.destroySound(stationNames[currStation]);
 			clearInterval(ctInterval);
 			$('.watch').removeClass('active');
 			$('.station.active').children('.volume, .bitrate').removeClass('active');
@@ -412,4 +343,3 @@ function currColorScheme() {
 		}
 	});
 })(jQuery);
-
