@@ -156,6 +156,7 @@ html, body {
 	filter: blur(10px); 
 	height: 29px;
 	left: -6px;
+	opacity: 0;
 	position: absolute;
 	top: 3px;
 	width: 29px;
