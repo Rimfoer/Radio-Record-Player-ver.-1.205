@@ -157,7 +157,7 @@
 
 			$(document).on('mousemove mousedown', '.volume.active', function(e) {
 				let xpos = e.offsetX || e.pageX-$(this).offset().left;
-				let	VolXMouse = Number(Math.round(xpos/25*10)*10).limiter();
+				let	VolXMouse = Number(Math.round(xpos/25*10)*10).VolLimiter();
 				$(this).children('.volume-rollover').animateSprite(getCurVolRolPos === 0 ? 'play' : 'frame', `${Math.round(VolXMouse/10)}`);
 				if(e.buttons === 1) {
 					$('.volume-click').animateSprite('frame', `${Math.round(VolXMouse/10)}`);
