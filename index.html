@@ -88,8 +88,9 @@
 			</ul>
 		</div>
 		<script>
-			let aInterval, advInterval, cs, ctInterval, currParser, currStation, mInterval, ncs, radio, url;
-			let currTime = getCurVolRolPos = int_phs = otherParser = smErrorCounter = 0;
+			let aInterval, advInterval, cs, ctInterval, currParser, currStation, ncs, radio, url;
+			let currTime = getCurVolRolPos = intAdv = otherParser = smErrorCounter = 0;
+			let angle = {degree:0};
 			let bitrate = localStorage.currBitrate || '128';
 			let currSpeed = $('#'+bitrate).index();
 			let playStatus = 'reading';
@@ -102,7 +103,7 @@
 			$(function() {
 				if(win) showMessage('closeTab');
 				currColorScheme();
-				update_title_Adv();
+				updateTitleAdv();
 			});
 
 			soundManager.setup({
@@ -112,18 +113,14 @@
 					localStorage.playSource = '';
 					playStatus = 'stopped';
 					$('.station').children('.play').removeClass('disabled');
-					$('.volume-click, .volume-rollover').animateSprite(animParamsVolume);
-					$('.volume-click').animateSprite('play', `${Math.round(volume/10)}`);
-					$('.bitrate').children('div').animateSprite(animParamsBitrate);
-					$('.bitrate').children('#'+bitrate).animateSprite('play', 'animate').addClass('active');
-					$('.bitrate').children('#'+rmBitrate).animateSprite('play', 'remove');
+					initAnimElems();
 				},
 				useHighPerformance: false
 			});
 
 			soundManager.onerror = function() {
 				smErrorCounter++;
-				if(smErrorCounter < 10) setTimeout(() => soundManager.reboot(), 3000);
+				if(smErrorCounter < 10) setTimeout(soundManager.reboot(), 3000);
 			};
 
 			$(document).on('click', '.play-button', function(e) {
@@ -149,7 +146,7 @@
 					setPlayURL(radio);
 					$('.station.active').startPlay(url);
 					$('.station.active').children('.pie-timer').addClass('active');
-					update_title_Main(currParser);
+					updateTitleMain(currParser);
 					if(startCount === 5) startCount--;
 					otherParser.parseCount();
 				}				
@@ -182,7 +179,7 @@
 			});
 
 			$(document).on('click', '.bitrate.active div', function() {
-				$('.bitrate').children('#'+bitrate).animateSprite('play', 'remove').removeClass('active');
+				$('#'+bitrate).animateSprite('play', 'remove').removeClass('active');
 				if(this.id !== bitrate) {
 					bitrate = this.id,
 					currSpeed = $('#'+this.id).index();
