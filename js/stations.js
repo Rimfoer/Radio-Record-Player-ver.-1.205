@@ -13,6 +13,14 @@ const specialChars = /[#$%^*\=\{};:"\\|<>]/;
 const arrMessages = {'closeTab': 'Теперь вкладку можно закрыть.', 'copy': 'Текст скопирован в буфер обмена', 'copytext': 'Нажми два раза, чтобы скопировать в буфер обмена', 'mute': 'Звук приглушен', 'nocopy': 'Текст не был скопирован', 'noselect': 'Станция не выбрана', 'noconnect': 'Ошибка подключения к аудиопотоку.', 'notloaded': 'Ошибка загрузки данных о текущем треке', 'notplaying': 'В данный момент ничего не играет.', 'played': 'Воспроизведение остановлено', 'restart': 'Воспроизведение перезапущено', 'unmute': 'Звук возобновлен', 'volume': 'Громкость: '};
 const stationNames = ['Radio Record',  'Teodor', 'Pirate Station', 'Гоп FM', 'Trancemission', 'Record Dancecore'];
 
+function initAnimElems() {
+	$('.volume-click, .volume-rollover').animateSprite(animParamsVolume);
+	$('.volume-click').animateSprite('play', `${Math.round(volume/10)}`);
+	$('.bitrate').children('div').animateSprite(animParamsBitrate);
+	$('#'+bitrate).animateSprite('play', 'animate').addClass('active');
+	$('#'+rmBitrate).animateSprite('play', 'remove');
+}
+
 function currPlayerStatus(stat) {
 	let playButton = $('.station.active').find('.play-button');
 	let playButtonBg = $('.station.active').find('.play-button-bg');
@@ -110,18 +118,12 @@ function parseTitle(...args) {
 						$(this).html(val.setSongName(args[2]));
 						$(this).attr('title', val.checkTextLength());
 						$(this).animate({color: textColor.title.on}, 500, function() {
-							if(args[3] === false) {
-								$('.station.active').find('.pie-spinner').addClass('running');
-								mInterval = setTimeout(update_title_Main, 5000);
-							}
+							if(args[3] === false) setSpinner();
 						});	
 					});
 					stationText[args[2]][1] = val;
 				} else {
-					if(args[3] === false) {
-						$('.station.active').find('.pie-spinner').addClass('running');
-						mInterval = setTimeout(update_title_Main, 5000);
-					}
+					if(args[3] === false) setSpinner();
 				}
 				break;
 			}
@@ -130,42 +132,54 @@ function parseTitle(...args) {
 	if(args[3]) otherParser.parseCount();
 }
 
-function update_title_Main(startWith) {
-	if(mInterval !== undefined) clearTimeout(mInterval);
+function updateTitleMain(startWith) {
 	let el = $(`#${stationId[currParser]}`).children('.station-text');
-	$('.station.active').find('.pie-spinner').removeClass('running');
 	$.getJSON('https://vk.radiorecord.ru/api/stations/now/').done(function(data) {
 		parseTitle(data.result[parser[!startWith ? currParser : startWith]].track, el, currParser, false);
 	}).fail(function() {
 		showMessage('notloaded');
-		$('.station.active').find('.pie-spinner').addClass('running');
-		mInterval = setTimeout(update_title_Main, 5000);
+		setSpinner();
 	});
 }
 
-function update_title_Adv() {
-	int_phs = 0;
-	advInterval = setInterval(update_title_Adv_shot, 800);
+function updateTitleAdv() {
+	intAdv = 0;
+	advInterval = setInterval(updateTitleAdvShot, 800);
 }
 
-function update_title_Adv_shot(startWith) {
+function updateTitleAdvShot(startWith) {
 	let elm = $(`#${stationId[otherParser]}`).children('.station-text');
-	if(int_phs <= startCount) {
+	if(intAdv <= startCount) {
 		$.getJSON('https://vk.radiorecord.ru/api/stations/now/').done(function(data) {
 			parseTitle(data.result[parser[!startWith ? otherParser : startWith]].track, elm, otherParser, true);
 		}).fail(function() {
 			showMessage('notloaded');
 			otherParser.parseCount();
-			if(int_phs >= startCount) {
+			if(intAdv >= startCount) {
 				clearInterval(advInterval);
 				aInterval = setTimeout(update_title_Adv, 33333);
 			}
 		});
-		int_phs++;
+		intAdv++;
 	} else {
 		clearInterval(advInterval);
-		aInterval = setTimeout(update_title_Adv, 33333);
+		aInterval = setTimeout(updateTitleAdv, 33333);
 	}
+}
+
+function setSpinner() {
+	angle.degree = 0;
+	$(angle).animate({
+		degree: 100},
+		{duration: 5000,
+		easing: 'linear',
+		step: function(now) {
+			$('.station.active').find('.pie-spinner').css('background', `conic-gradient(rgb(169,169,169,.8) ${now}%, transparent 0)`);
+		},
+		complete: function() {
+			updateTitleMain();
+		}
+	});
 }
 
 Number.prototype.VolLimiter = function(num) {
