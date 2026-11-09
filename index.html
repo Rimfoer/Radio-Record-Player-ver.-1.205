@@ -126,17 +126,19 @@
 			$(document).on('click', '.play-button', function(e) {
 				e.preventDefault();
 				if($(this).hasClass('playing') && playStatus === 'playing') {
-					$(this).stop();
+					$(this).stopPlay();
 				} else if($(this).closest('.station').hasClass('active') && playStatus === 'stopped') {
 					$(this).startPlay(url);
 				} else if($(this).hasClass('playing') && playStatus === 'ended') {
-					$(this).stop();
-					setTimeout($(this).startPlay(url), 1000);
+					$(this).restart();
 				} else {
-					if(soundManager.soundIDs.length > 0) $(this).stop();
-					$('.station').find('.cover').animate({opacity: 0.3}, 300);
-					$('.station').children('.volume, .bitrate, .pie-timer').removeClass('active');
-					$('.station').removeClass('active');
+					if(soundManager.soundIDs.length > 0) {
+						$(this).stopPlay();
+						setSpinner(0);
+						$('.station').find('.cover').animate({opacity: 0.3}, 300);
+						$('.station').children('.volume, .bitrate, .pie-timer').removeClass('active');
+						$('.station').removeClass('active');
+					}
 					/****************************************************************************/
 					$(this).closest('.station').addClass('active');
 					$('.station.active').find('.cover').animate({opacity: 1}, 300);
@@ -173,13 +175,13 @@
 
 			$(document).on('click', '.listen-player a', function() {
 				if($(this).closest('.station').hasClass('active') && playStatus === 'playing') {
-					$('.station.active').stop();
+					$('.station.active').stopPlay();
 				}
 				return this.href;
 			});
 
 			$(document).on('click', '.bitrate.active div', function() {
-				$('#'+bitrate).animateSprite('play', 'remove').removeClass('active');
+				$('.bitrate').children('#'+bitrate).animateSprite('play', 'remove').removeClass('active');
 				if(this.id !== bitrate) {
 					bitrate = this.id,
 					currSpeed = $('#'+this.id).index();
@@ -189,17 +191,17 @@
 				}
 				url = StreamDomain + streamNames[currStation] + streamSpeed[currSpeed];
 				rmBitrate = invertBitrateValue(bitrate);
-				$('#'+rmBitrate).animateSprite('play', 'remove');
-				$('#'+bitrate).addClass('active').animateSprite('play', 'animate');
+				$('.bitrate').children('#'+rmBitrate).animateSprite('play', 'remove');
+				$('.bitrate').children('#'+bitrate).addClass('active').animateSprite('play', 'animate');
 				$('.station.active').startPlay(url);
 				localStorage.currBitrate = this.id;
 			}).on('mouseenter', '.bitrate.active div', function() {
 				if(this.id !== bitrate) {
 					rmBitrate = this.id;
-					$('#'+rmBitrate).animateSprite('play', 'animate');
+					$('.bitrate').children('#'+rmBitrate).animateSprite('play', 'animate');
 				}
 			}).on('mouseleave', '.bitrate.active', function() {
-				$('#'+rmBitrate).animateSprite('play', 'remove');
+				$('.bitrate').children('#'+rmBitrate).animateSprite('play', 'remove');
 			});
 
 			$('.link a').on('click', function(e) {
@@ -292,15 +294,22 @@
 				$('.tooltip').css({left: `${lt}px`, top: `${tt}px`});
 			}).on('keydown', function(e) {
 				switch(e.which) {
-					case 27: $('.context-menu').removeClass('active'); break; // esc
-					case 32: { // пробел
-						radio !== undefined ? $('.station.active').play() : showMessage('noselect');
+					case 27: { // esc
+						$('.context-menu').removeClass('active');
 						break;
 					}
-					case (e.which >= 49 && e.which <= 54 ? e.which : false): // 1, 2, 3, 4, 5, 6 (не numpad!)
-						$(`#${stationId[e.which-49]}`).play(); break;
-					case (e.which>=97 && e.which<=102 ? e.which : false): // 1, 2, 3, 4, 5, 6 (numpad)
-						$(`#${stationId[e.which-97]})`).play(); break;
+					case 32: { // пробел
+						radio !== undefined ? $('.station.active').fastPlay() : showMessage('noselect');
+						break;
+					}
+					case (e.which >= 49 && e.which <= 54 ? e.which : false): { // 1, 2, 3, 4, 5, 6 (не numpad!)
+						$(`#${stationId[e.which-49]}`).fastPlay();
+						break;
+					}
+					case (e.which >= 97 && e.which <= 102 ? e.which : false): { // 1, 2, 3, 4, 5, 6 (numpad)
+						$(`#${stationId[e.which-97]})`).fastPlay();
+						break;
+					}
 					case 77: { // m
 						if(soundManager.muted) {
 							soundManager.unmute();
