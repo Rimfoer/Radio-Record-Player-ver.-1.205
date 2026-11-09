@@ -17,8 +17,8 @@ function initAnimElems() {
 	$('.volume-click, .volume-rollover').animateSprite(animParamsVolume);
 	$('.volume-click').animateSprite('play', `${Math.round(volume/10)}`);
 	$('.bitrate').children('div').animateSprite(animParamsBitrate);
-	$('#'+bitrate).animateSprite('play', 'animate').addClass('active');
-	$('#'+rmBitrate).animateSprite('play', 'remove');
+	$('.bitrate').children('#'+bitrate).animateSprite('play', 'animate').addClass('active');
+	$('.bitrate').children('#'+rmBitrate).animateSprite('play', 'remove');
 }
 
 function currPlayerStatus(stat) {
@@ -91,8 +91,8 @@ function setPlayURL(curSt) {
 		bitrate = '128',
 		currSpeed = 1,
 		invertBitrateValue(bitrate);
-		$('#'+rmBitrate).animateSprite('play', 'remove');
-		$('#'+bitrate).addClass('active').animateSprite('play', 'animate');
+		$('.bitrate').children('#'+rmBitrate).animateSprite('play', 'remove');
+		$('.bitrate').children('#'+bitrate).addClass('active').animateSprite('play', 'animate');
 		localStorage.currBitrate = bitrate;
 	}
 	url = StreamDomain + streamNames[currStation] + streamSpeed[currSpeed];
@@ -167,19 +167,20 @@ function updateTitleAdvShot(startWith) {
 	}
 }
 
-function setSpinner() {
-	angle.degree = 0;
-	$(angle).animate({
-		degree: 100},
-		{duration: 5000,
-		easing: 'linear',
-		step: function(now) {
-			$('.station.active').find('.pie-spinner').css('background', `conic-gradient(rgb(169,169,169,.8) ${now}%, transparent 0)`);
-		},
-		complete: function() {
-			updateTitleMain();
-		}
-	});
+function setSpinner(arg) {
+	if(arg !== undefined) {
+		$(angle).stop();
+	} else {
+		angle.degree = 0;
+		$(angle).animate({degree: 100},{duration: 5000,easing: 'linear',
+			step: function(now) {
+				$('.station.active').find('.pie-spinner').css('background', `conic-gradient(rgb(169,169,169,.8) ${now}%, transparent 0)`);
+			},
+			complete: function() {
+				updateTitleMain();
+			}
+		});
+	}
 }
 
 Number.prototype.VolLimiter = function(num) {
@@ -278,23 +279,23 @@ function setLSItem(id) {
 }
 
 function openURL(windowName, link) {
-	let params = setWindowParams(link); 
+	let params = calcRes(link !== window.location.href ? 'other' : 'that');
 	window.open(link, windowName, `top=100,left=200,${params},location=no,menubar=no,resizable=no,scrollbars=no,status=no,toolbar=no`).focus();
 }
 
-function setWindowParams(link) {
-	if(link !== window.location.href) {
-		return (window.devicePixelRatio > 1 ? 'width=417,height=544' : 'width=422,height=554');
-	} else {
-		return (window.devicePixelRatio > 1 ? 'width=838,height=418' : 'width=844,height=422');
-	}
+function calcRes(req) {
+	let res = {"that": {"height": "428", "width": "844"}, "other": {"height": "554", "width": "422"}};
+	let scale = Math.ceil((window.outerWidth - 10) / window.innerWidth * 100);
+	let height = Math.round(res[req].height*scale/100);
+	let width = Math.round(res[req].width*scale/100);
+	console.log(width + 'x' + height + 'px ' + scale + '%');
+	return `width=${width},height=${height}`;
 }
 
 function invertBitrateValue(str) {
 	switch(str) {
 		case '32': return '128'; break;
 		case '128': return '32'; break;
-		default: return false;
 	}
 }
 
@@ -306,7 +307,7 @@ function currColorScheme() {
 
 (function($) {
 	$.fn.extend({
-		play: function() {
+		fastPlay: function() {
 			$(this).find('.play-button').trigger('click');
 		},
 		restart: function() {
@@ -317,7 +318,7 @@ function currColorScheme() {
 			showMessage('restart');
 		},
 		startPlay: function(link) {
-			if(soundManager.soundIDs.length > 0) $('.station').stop();
+			if(soundManager.soundIDs.length > 0) $('.station').stopPlay();
 			soundObject = soundManager.createSound({
 				autoLoad: false,
 				autoPlay: true,
@@ -331,7 +332,7 @@ function currColorScheme() {
 				useHtml5Audio: true,
 				volume: volume,
 				whileplaying: function() {
-					if(localStorage.playSource !== 'current') $('.station.active').stop();
+					if(localStorage.playSource !== 'current') $('.station.active').stopPlay();
 				}
 			});
 			if(soundManager.muted) {
@@ -343,7 +344,7 @@ function currColorScheme() {
 			$('.station.active').children('.volume, .bitrate').addClass('active');
 			localStorage.playSource = 'current';
 		},
-		stop: function() {
+		stopPlay: function() {
 			soundManager.destroySound(stationNames[currStation]);
 			clearInterval(ctInterval);
 			$('.watch').removeClass('active');
