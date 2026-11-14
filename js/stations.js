@@ -8,7 +8,7 @@ const streamSpeed = ['32.aacp','96.aacp'];
 const StreamDomain = 'https://radiorecord.hostingradio.ru/';
 const arrArtists = ['Record', 'Radio Record', 'Record Club', 'Record Deep', 'Record Megamix', 'Радио Рекорд', 'Рекорд'];
 const arrTitles = ['Armin Van Buuren', 'Feel', 'Gvozd', 'Guest Mix CYRIL', 'Kefir', 'Lady Waks', 'Lena Popova', 'Martin Garrix', 'Nejtrino & Baur', 'Oliver Heldens', 'Record Classix', 'Record Party', 'Record Superchart', 'Record Club Chart', 'Selection', 'The Voice Of My Soul', 'Trance Music Club', 'Zeskullz', 'by DJ Peretse', 'Цветкоff'];
-const arrRadioShows = ['InvestFuture', 'Record Dance Radio', 'Record News', 'Вейкаперы', 'Кремов и Хрусталёв', 'Русский Час'];
+const arrRadioShows = ['InvestFuture', 'Record Dance Radio', 'Record News', 'Вейкаперы', 'Колбасный Цех', 'Кремов и Хрусталёв', 'Русский Час'];
 const specialChars = /[#$%^*\=\{};:"\\|<>]/;
 const arrMessages = {'closeTab': 'Теперь вкладку можно закрыть.', 'copy': 'Текст скопирован в буфер обмена', 'copytext': 'Нажми два раза, чтобы скопировать в буфер обмена', 'mute': 'Звук приглушен', 'nocopy': 'Текст не был скопирован', 'noselect': 'Станция не выбрана', 'noconnect': 'Ошибка подключения к аудиопотоку.', 'notloaded': 'Ошибка загрузки данных о текущем треке', 'notplaying': 'В данный момент ничего не играет.', 'played': 'Воспроизведение остановлено', 'restart': 'Воспроизведение перезапущено', 'unmute': 'Звук возобновлен', 'volume': 'Громкость: '};
 const stationNames = ['Radio Record',  'Teodor', 'Pirate Station', 'Гоп FM', 'Trancemission', 'Record Dancecore'];
@@ -24,7 +24,7 @@ function initAnimElems() {
 function currPlayerStatus(stat) {
 	let playButton = $('.station.active').find('.play-button');
 	let playButtonBg = $('.station.active').find('.play-button-bg');
-	switch(stat !== undefined ? stat : playStatus) {
+	switch(isUndefined(stat) ? stat : playStatus) {
 		case 'waiting':
 		case 'stalled':
 		case 'loading':
@@ -42,17 +42,6 @@ function currPlayerStatus(stat) {
 			playButton.removeClass(['connecting','playing']);
 			playButtonBg.animate({opacity: 0}, 300);
 		}
-	}
-}
-
-function showMessage(txt, val) {
-	if(txt !== undefined && val === undefined) {
-		$('.tooltip').html(arrMessages[txt]).addClass('active');
-		setTimeout(() => $('.tooltip').removeClass('active'), 5000 + String(arrMessages[txt]).length * 50);
-	} else if(txt !== undefined && val !== undefined) {
-		$('.tooltip').html(arrMessages[txt] + val + (txt === 'volume' ? '%' : '')).addClass('active');
-	} else {
-		$('.tooltip').removeClass('active');
 	}
 }
 
@@ -209,7 +198,13 @@ Number.prototype.setParser = function(num) {
 String.prototype.setArtistName = function(songName) {
 	let artist = String(this);
 	if(artist === "" || arrArtists.includes(artist)) {
-		return (arrRadioShows.includes(songName) ? 'В эфире: ' + songName : 'В эфире:');
+		if(arrTitles.includes(songName)) {
+			return `В эфире: ${artist}`;
+		} else if(arrRadioShows.includes(songName)) {
+			return `В эфире: ${songName}`;
+		} else {
+			return 'В эфире:';
+		}
 	} else {
 		return artist.stripWhitespace();
 	}
@@ -248,113 +243,9 @@ String.prototype.checkTextLength = function() {
 	}
 }
 
-function audioStreamLink(type) {
-	switch(type) {
-		case 'applemusic': return 'https://music.apple.com/us/search?term='; break;
-		case 'deezer': return 'https://www.deezer.com/search/'; break;
-		case 'spotify': return 'https://open.spotify.com/search/'; break;
-		case 'vk': return 'https://vk.com/audios0?q='; break;
-		case 'yandexmusic': return 'https://music.yandex.ru/search?text='; break;
-		case 'youtubemusic': return 'https://music.youtube.com/search?q='; break;
-	}
-}
-
-function customEncodeURI(obj, pos) {
-	return encodeURI(`${String(obj[pos][0])} - ${String(obj[pos][1]).replace(' (Record Mix)', '')}`);
-}
-
-function checkLSItems() {
-	const obj = ['copyTextTip', 'currBitrate', 'currVolume'];
-	for(cls = 0; cls < obj.length; cls++) {
-		if(!localStorage[obj[cls]]) setLSItem(obj[cls]);
-	}
-}
-
-function setLSItem(id) {
-	switch(id) {
-		case 'copyTextTip': localStorage[id] = false; break;
-		case 'currBitrate': localStorage[id] = '128'; break;
-		case 'currVolume': localStorage[id] = '75'; break;
-	}
-}
-
-function openURL(windowName, link) {
-	let params = calcRes(link !== window.location.href ? 'other' : 'that');
-	window.open(link, windowName, `top=100,left=200,${params},location=no,menubar=no,resizable=no,scrollbars=no,status=no,toolbar=no`).focus();
-}
-
-function calcRes(req) {
-	let res = {"that": {"height": "428", "width": "844"}, "other": {"height": "554", "width": "422"}};
-	let scale = Math.ceil((window.outerWidth - 10) / window.innerWidth * 100);
-	let height = Math.round(res[req].height*scale/100);
-	let width = Math.round(res[req].width*scale/100);
-	console.log(width + 'x' + height + 'px ' + scale + '%');
-	return `width=${width},height=${height}`;
-}
-
 function invertBitrateValue(str) {
 	switch(str) {
 		case '32': return '128'; break;
 		case '128': return '32'; break;
 	}
 }
-
-function currColorScheme() {
-	if(window.matchMedia('(prefers-color-scheme: dark)').matches) {
-		$('.context-menu').addClass('dark-mode');
-	}
-}
-
-(function($) {
-	$.fn.extend({
-		fastPlay: function() {
-			$(this).find('.play-button').trigger('click');
-		},
-		restart: function() {
-			soundManager.destroySound(stationNames[currStation]);
-			playStatus = 'connecting';
-			currPlayerStatus('connecting');
-			setTimeout($('.station.active').startPlay(url), 1500);
-			showMessage('restart');
-		},
-		startPlay: function(link) {
-			if(soundManager.soundIDs.length > 0) $('.station').stopPlay();
-			soundObject = soundManager.createSound({
-				autoLoad: false,
-				autoPlay: true,
-				html5PollingInterval: true,
-				id: stationNames[currStation],
-				onfinish: function() {
-					$('.station.active').restart();
-				},
-				stream: true,
-				url: link || url,
-				useHtml5Audio: true,
-				volume: volume,
-				whileplaying: function() {
-					if(localStorage.playSource !== 'current') $('.station.active').stopPlay();
-				}
-			});
-			if(soundManager.muted) {
-				soundManager.unmute();
-				$('.volume-click').animateSprite('frame', volume/10);
-			}
-			setWatch(0);
-			$('.watch').addClass('active');
-			$('.station.active').children('.volume, .bitrate').addClass('active');
-			localStorage.playSource = 'current';
-		},
-		stopPlay: function() {
-			soundManager.destroySound(stationNames[currStation]);
-			clearInterval(ctInterval);
-			$('.watch').removeClass('active');
-			$('.station.active').children('.volume, .bitrate').removeClass('active');
-			$('.station.active').find('.play-button').removeClass(['connecting','playing']);
-			ctInterval = undefined,
-			currTime = 0,
-			playStatus = 'stopped';
-			setWatch(0);
-			localStorage.playSource = '';
-		}
-	});
-})(jQuery);
