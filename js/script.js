@@ -8,23 +8,20 @@ let rmBitrate = invertBitrateValue(bitrate);
 let startCount = 5;
 let stationText = [[],[],[],[],[],[]];
 let volume = localStorage.currVolume || 75;
-let win = window.opener !== null ? true : false;
-
-if(win) showMessage('closeTab');
-currColorScheme();
-updateTitleAdv();
 
 (function($) {
 	soundManager.setup({
 		preferFlash: false,
 		onready: function() {
 			checkLSItems();
+			currColorScheme();
+			initAnimElems();
 			localStorage.playSource = '';
 			playStatus = 'stopped';
 			$('.station').children('.play').removeClass('disabled');
-			initAnimElems();
+			updateTitleAdv();
 		},
-		useHighPerformance: false
+		useHighPerformance: true
 	});
 
 	soundManager.onerror = function() {
@@ -59,7 +56,6 @@ updateTitleAdv();
 			$('.station.active').children('.pie-timer').addClass('active');
 			updateTitleMain(currParser);
 			if(startCount === 5) startCount--;
-			otherParser.parseCount();
 		}				
 	});
 
