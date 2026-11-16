@@ -1,6 +1,6 @@
 const animParamsVolume = {fps:60,animations:{0:[0],1:[0,1],r1:[1,0],2:[0,1,2],r2:[2,1,0],3:[0,1,2,3],r3:[3,2,1,0],4:[0,1,2,3,4],r4:[4,3,2,1,0],5:[0,1,2,3,4,5],r5:[5,4,3,2,1,0],6:[0,1,2,3,4,5,6],r6:[6,5,4,3,2,1,0],7:[0,1,2,3,4,5,6,7],r7:[7,6,5,4,3,2,1,0],8:[0,1,2,3,4,5,6,7,8],r8:[8,7,6,5,4,3,2,1,0],9:[0,1,2,3,4,5,6,7,8,9],r9:[9,8,7,6,5,4,3,2,1,0],10:[0,1,2,3,4,5,6,7,8,9,10],r10:[10,9,8,7,6,5,4,3,2,1,0]},loop: false,autoPlay: false};
 const animParamsBitrate = {fps:60,animations:{animate:[0,1,2,3,4],remove:[4,3,2,1,0]},loop: false,autoPlay: false};
-const textColor = {artist:{off:"rgb(255,255,255,0)",on:"rgb(255,255,255,.7)"},title:{off:"rgb(163,163,163,0)",on:"rgb(163,163,163,.8)"}};
+const textColor = {artist:{off:"rgb(255,255,255,0)",on:"rgb(255,255,255,1)"},title:{off:"rgb(163,163,163,0)",on:"rgb(163,163,163,1)"}};
 const parser = [71,43,40,57,63,53];
 const stationId = ['rr','ps','tm','teo','gop','dc'];
 const streamNames = ['rr_main','teo','ps','gop','tm','dc'];
@@ -121,10 +121,10 @@ function parseTitle(...args) {
 	if(args[3]) otherParser.parseCount();
 }
 
-function updateTitleMain(startWith) {
+function updateTitleMain() {
 	let el = $(`#${stationId[currParser]}`).children('.station-text');
 	$.getJSON('https://vk.radiorecord.ru/api/stations/now/').done(function(data) {
-		parseTitle(data.result[parser[!startWith ? currParser : startWith]].track, el, currParser, false);
+		parseTitle(data.result[parser[currParser]].track, el, currParser, false);
 	}).fail(function() {
 		showMessage('notloaded');
 		setSpinner();
@@ -136,11 +136,11 @@ function updateTitleAdv() {
 	advInterval = setInterval(updateTitleAdvShot, 800);
 }
 
-function updateTitleAdvShot(startWith) {
+function updateTitleAdvShot() {
 	let elm = $(`#${stationId[otherParser]}`).children('.station-text');
 	if(intAdv <= startCount) {
 		$.getJSON('https://vk.radiorecord.ru/api/stations/now/').done(function(data) {
-			parseTitle(data.result[parser[!startWith ? otherParser : startWith]].track, elm, otherParser, true);
+			parseTitle(data.result[parser[otherParser]].track, elm, otherParser, true);
 		}).fail(function() {
 			showMessage('notloaded');
 			otherParser.parseCount();
@@ -157,7 +157,7 @@ function updateTitleAdvShot(startWith) {
 }
 
 function setSpinner(arg) {
-	if(arg !== undefined) {
+	if(isUndefined(arg)) {
 		$(angle).stop();
 	} else {
 		angle.degree = 0;
@@ -178,7 +178,7 @@ Number.prototype.VolLimiter = function(num) {
 
 Number.prototype.parseCount = function() {
 	let num = Number(this)
-	if(currParser !== undefined) {
+	if(isUndefined(currParser)) {
 		otherParser = num >= 5 ? (currParser <= 0 ? 1 : 0) : (num === currParser - 1 ? (currParser >= 5 ? 0 : num + 2) : num + 1);
 	} else {
 		otherParser = num >= 5 ? 0 : num + 1;
@@ -197,7 +197,7 @@ Number.prototype.setParser = function(num) {
 
 String.prototype.setArtistName = function(songName) {
 	let artist = String(this);
-	if(artist === "" || arrArtists.includes(artist)) {
+	if(!isEmpty(artist) || arrArtists.includes(artist)) {
 		if(arrTitles.includes(songName)) {
 			return `В эфире: ${artist}`;
 		} else if(arrRadioShows.includes(songName)) {
@@ -212,7 +212,7 @@ String.prototype.setArtistName = function(songName) {
 
 String.prototype.setSongName = function(numSt) {
 	let title = String(this);
-	if(title === "" || arrRadioShows.includes(title)) {
+	if(!isEmpty(title) || arrRadioShows.includes(title)) {
 		return '';
 	} else if(specialChars.test(title)) {
 		return ([0,1,2].includes(numSt) ? '' : '— ') + title.stripWhitespace();
