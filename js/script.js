@@ -38,7 +38,7 @@ let volume = localStorage.currVolume || 75;
 		} else if($(this).hasClass('playing') && playStatus === 'ended') {
 			$(this).restart();
 		} else {
-			if(soundManager.soundIDs.length > 0) {
+			if(soundManager.soundIDs.length > 0 || $('.station').hasClass('active')) {
 				$(this).stopPlay();
 				setSpinner(0);
 				$('.station').find('.cover').animate({opacity: 0.3}, 300);
